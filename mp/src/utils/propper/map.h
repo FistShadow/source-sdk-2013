@@ -15,6 +15,6 @@
 extern CUtlVector<int> g_NoDynamicShadowSides;
 
 //Carl
-extern brush_texture_t	side_brushtextures[MAX_MAP_BRUSHSIDES];
+//extern brush_texture_t	side_brushtextures[MAX_MAP_BRUSHSIDES];
 
 #endif // MAP_H

@@ -1239,7 +1239,7 @@ int OutputDisp(mapdispinfo_t* pMapDisp, smd_triangle_t *tri, smd_point_t *vertic
 	GetMaterialDimensions( hMaterial, &texWidth, &texHeight );
 
 	CCoreDispInfo coreDispInfo;
-	DispMapToCoreDispInfo( pMapDisp, &coreDispInfo, 0 );
+	DispMapToCoreDispInfo( pMapDisp, &coreDispInfo, 0, 0 );
 	int nverts = coreDispInfo.GetSize();
 	Vector2D UVCoord;
 
@@ -1425,18 +1425,18 @@ void MakeSMD(bool phys, char *SMDfilename, int ent, float weldvertices, model_t*
 	if (!phys){
 		for(int i=0; i< nummapdispinfo; i++){
 			if (mapdispinfo[i].entitynum == ent){
-				pTexture = &side_brushtextures[mapdispinfo[i].td_num];
+				pTexture = &g_MainMap->side_brushtextures[mapdispinfo[i].td_num];
 				num_tris = OutputDisp(&mapdispinfo[i], &smd_tris[0], &smd_pts[0], num_tris, pTexture, m->disp_nowarp, m->qc_cdmaterials);
 			}
 		}
 	}
-	for( int i=0; i < nummapbrushes; i++ )
+	for( int i=0; i < g_MainMap->nummapbrushes; i++ )
 	{
-		if (mapbrushes[i].entitynum == ent)//ignore everything not in the specified entity
+		if (g_MainMap->mapbrushes[i].entitynum == ent)//ignore everything not in the specified entity
 		{
 			//bool thisBrushSolid = true; //We no longer use this.
-			if (mapbrushes[i].entitynum != 0) {
-				Offset = entities[mapbrushes[i].entitynum].origin;
+			if (g_MainMap->mapbrushes[i].entitynum != 0) {
+				Offset = g_MainMap->entities[g_MainMap->mapbrushes[i].entitynum].origin;
 			}
 			else VectorClear(Offset);
 			//if (phys && !thisBrushSolid)continue; //skip to the next solid.
@@ -1445,13 +1445,13 @@ void MakeSMD(bool phys, char *SMDfilename, int ent, float weldvertices, model_t*
 			if (phys) m->num_physhulls++;
 
 			//Now write out each side in the brush.
-			for( int j=0; j < mapbrushes[i].numsides; j++ )
+			for( int j=0; j < g_MainMap->mapbrushes[i].numsides; j++ )
 			{
 				suffix = 0;
-				wind = mapbrushes[i].original_sides[j].winding;
+				wind = g_MainMap->mapbrushes[i].original_sides[j].winding;
 				if (wind) //There are extra sides that have no winding. Ignore em.
 				{
-					pTexture = &side_brushtextures[mapbrushes[i].original_sides[j].td_num];
+					pTexture = &g_MainMap->side_brushtextures[g_MainMap->mapbrushes[i].original_sides[j].td_num];
 					if(!pTexture) Error("Texture not found");
 					cTexFileName = pTexture->name;
 					if (fixMaterials && !phys) {
@@ -1518,14 +1518,14 @@ void MakeSMD(bool phys, char *SMDfilename, int ent, float weldvertices, model_t*
 						p2->v = (DotProduct(wind->p[t-1] + Offset, *tVector)/pTexture->textureWorldUnitsPerTexel[1]-pTexture->shift[1])/texHeight;
 
 
-						smd_tris[num_tris].brush = mapbrushes[i].id;
-						p0->brush = mapbrushes[i].id;
-						p1->brush = mapbrushes[i].id;
-						p2->brush = mapbrushes[i].id;
+						smd_tris[num_tris].brush = g_MainMap->mapbrushes[i].id;
+						p0->brush = g_MainMap->mapbrushes[i].id;
+						p1->brush = g_MainMap->mapbrushes[i].id;
+						p2->brush = g_MainMap->mapbrushes[i].id;
 
-						p0->wcSmooth = mapbrushes[i].original_sides[j].smoothingGroups;
-						p1->wcSmooth = mapbrushes[i].original_sides[j].smoothingGroups;
-						p2->wcSmooth = mapbrushes[i].original_sides[j].smoothingGroups;
+						p0->wcSmooth = g_MainMap->mapbrushes[i].original_sides[j].smoothingGroups;
+						p1->wcSmooth = g_MainMap->mapbrushes[i].original_sides[j].smoothingGroups;
+						p2->wcSmooth = g_MainMap->mapbrushes[i].original_sides[j].smoothingGroups;
 						num_tris++;
 					}
 				}
@@ -1597,7 +1597,7 @@ void model_t::getMapProperties(){
 		mapent = &entities[i];
 		pClassName = ValueForKey( mapent, "classname" );
 		if ( !strcmp( phys_entname, ValueForKey( mapent, "targetname" ) ) ){
-			phys_entnum = mapbrushes[mapent->firstbrush].entitynum;
+			phys_entnum = g_MainMap->mapbrushes[mapent->firstbrush].entitynum;
 		}
 		if ( !strcmp( ent_name, ValueForKey( mapent, "my_model" ) ) ){
 			if ( !strcmp( "info_prop_physics", pClassName ) || !strcmp( "propper_physics", pClassName) ){
@@ -1608,9 +1608,9 @@ void model_t::getMapProperties(){
 				phy->base = ValueForKey( mapent, "base" );
 				phy->health = IntForKey( mapent, "health" );
 				phy->physicsmode = IntForKey( mapent, "physicsmode" );
-				phy->flammable = (bool)IntForKey( mapent, "flammable" );
-				phy->ignite = (bool)IntForKey( mapent, "ignite_at_half_health" );
-				phy->explosive_resist = (bool)IntForKey( mapent, "explosive_resist" );
+				phy->flammable = IntForKey( mapent, "flammable" ) !=0;
+				phy->ignite = IntForKey( mapent, "ignite_at_half_health" ) !=0;
+				phy->explosive_resist = IntForKey( mapent, "explosive_resist" ) !=0;
 				phy->explosive_damage = FloatForKey( mapent, "explosive_damage" );
 				phy->explosive_radius = FloatForKey( mapent, "explosive_radius" );
 				phy->breakable_model = ValueForKey( mapent, "breakable_model" );
@@ -1623,15 +1623,15 @@ void model_t::getMapProperties(){
 				assert(phys_int != 0);
 				phys_interactions = true;
 				GetVectorForKey( mapent, "angles", phys_int->angles);
-				phys_int->preferred_carryangles = (bool)IntForKey( mapent, "preferred_carryangles" );
-				phys_int->stick = (bool)IntForKey( mapent, "stick" );
-				phys_int->bloodsplat = (bool)IntForKey( mapent, "bloodsplat" );
+				phys_int->preferred_carryangles = IntForKey( mapent, "preferred_carryangles" ) !=0;
+				phys_int->stick = IntForKey( mapent, "stick" ) !=0;
+				phys_int->bloodsplat = IntForKey( mapent, "bloodsplat" ) !=0;
 				//break is a keyword lol
-				phys_int->break_ = (bool)IntForKey( mapent, "break" );
-				phys_int->paintsplat = (bool)IntForKey( mapent, "paintsplat" );
-				phys_int->impale = (bool)IntForKey( mapent, "impale" );
+				phys_int->break_ = IntForKey( mapent, "break" ) !=0;
+				phys_int->paintsplat = IntForKey( mapent, "paintsplat" ) !=0;
+				phys_int->impale = IntForKey( mapent, "impale" ) !=0;
 				phys_int->onlaunch = ValueForKey( mapent, "onlaunch" );
-				phys_int->explode_fire = (bool)IntForKey( mapent, "explode_fire" );
+				phys_int->explode_fire = IntForKey( mapent, "explode_fire" ) !=0;
 			}
 			if ( !strcmp( "propper_attachment", pClassName ) )
 			{
@@ -1649,44 +1649,44 @@ void model_t::getMapProperties(){
 				dobodygroup = true;
 				bodygroups.groupname = ValueForKey(mapent, "groupname");
 				myent = EntityByName2(ValueForKey(mapent, "body01"));
-				if (myent!=0) bodygroups.body_ents[0] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[0] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body02"));
-				if (myent!=0) bodygroups.body_ents[1] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[1] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body03"));
-				if (myent!=0) bodygroups.body_ents[2] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[2] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body04"));
-				if (myent!=0) bodygroups.body_ents[3] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[3] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body05"));
-				if (myent!=0) bodygroups.body_ents[4] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[4] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body06"));
-				if (myent!=0) bodygroups.body_ents[5] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[5] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body07"));
-				if (myent!=0) bodygroups.body_ents[6] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[6] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body08"));
-				if (myent!=0) bodygroups.body_ents[7] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[7] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body09"));
-				if (myent!=0) bodygroups.body_ents[8] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[8] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body10"));
-				if (myent!=0) bodygroups.body_ents[9] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[9] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body11"));
-				if (myent!=0) bodygroups.body_ents[10] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[10] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body12"));
-				if (myent!=0) bodygroups.body_ents[11] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[11] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body13"));
-				if (myent!=0) bodygroups.body_ents[12] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[12] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body14"));
-				if (myent!=0) bodygroups.body_ents[13] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[13] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body15"));
-				if (myent!=0) bodygroups.body_ents[14] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[14] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 				myent = EntityByName2(ValueForKey(mapent, "body16"));
-				if (myent!=0) bodygroups.body_ents[15] = mapbrushes[myent->firstbrush].entitynum;
+				if (myent!=0) bodygroups.body_ents[15] = g_MainMap->mapbrushes[myent->firstbrush].entitynum;
 			}
 			if ( !strcmp( "propper_lod", pClassName ) )
 			{
 				//TODO2: Sort by switch metric
 				if (num_lods == 16) Error("Too many \"propper_lod\" entities in your map. 16 max.\n");
 	//			lods[num_lods].entname = ValueForKey(mapent, "targetname");
-				lods[num_lods].entnum = mapbrushes[mapent->firstbrush].entitynum;
+				lods[num_lods].entnum = g_MainMap->mapbrushes[mapent->firstbrush].entitynum;
 				lods[num_lods].weldvertices = FloatForKey(mapent, "weldvertices");
 				lods[num_lods].distance = IntForKey(mapent, "distance");
 				num_lods++;
@@ -2468,7 +2468,7 @@ int RunVBSP( int argc, char **argv )
 			Msg("Creating model: \"%s\"\n", m->qc_modelname);
 			Msg("===============================\n");
 			//mat_nonormal is a global, but change it for each model.
-			mat_nonormal = IntForKey(EntityByName2(m->ent_name), "mat_nonormal");
+			mat_nonormal = IntForKey(EntityByName2(m->ent_name), "mat_nonormal") !=0;
 			propper_models[i].getMapProperties();
 			//Use the ref. as collision if the chosen physics entity can't be found
 			if (m->phys_entnum == 0)m->phys_entnum = m->ref_entnum;

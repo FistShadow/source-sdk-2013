@@ -828,9 +828,9 @@ void CompactTexinfos()
 		}
 	}
 
-	int oldCount = texinfo.Count();
-	int oldTexdataCount = numtexdata;
-	int oldTexdataString = g_TexDataStringData.Count();
+//	int oldCount = texinfo.Count();
+//	int oldTexdataCount = numtexdata;
+//	int oldTexdataString = g_TexDataStringData.Count();
 	ComapctTexinfoArray( texinfoMap );
 	CompactTexdataArray( texdataMap );
 	for ( i = 0; i < texinfo.Count(); i++ )

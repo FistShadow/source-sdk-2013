@@ -1683,12 +1683,12 @@ ChunkFileResult_t CMapFile::LoadEntityCallback(CChunkFile *pFile, int nParam)
 			m->smoothangle = IntForKey(mapent, "smoothangle");
 			if (m->smoothangle > 180) m->smoothangle = 180;
 			if (m->smoothangle < 0) m->smoothangle = 0;
-			m->qc_concave = IntForKey(mapent, "concave");
-			m->qc_autocenter = IntForKey(mapent, "autocenter");
+			m->qc_concave = IntForKey(mapent, "concave") !=0;
+			m->qc_autocenter = IntForKey(mapent, "autocenter") !=0;
 			GetVectorForKey (mapent, "origin", m->origin);
 			m->origin.z *= -1;
 			m->origin.x *= -1;
-			m->snaptogrid = IntForKey(mapent, "snaptogrid");
+			m->snaptogrid = IntForKey(mapent, "snaptogrid") !=0;
 			m->ref_weldvertices = FloatForKey(mapent, "weldvertices");
 			if (IntForKey(mapent, "disp_nowarp")) m->disp_nowarp = true;
 			m->ref_entnum = mapbrushes[mapent->firstbrush].entitynum;

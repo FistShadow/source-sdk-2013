@@ -54,3 +54,13 @@ config.cfg
 # shader files
 *.tmp
 
+*.filters
+*.vpc_crc
+*.unsuccessfulbuild
+*.sentinel
+*.manifest
+mp/src/utils/propper/Debug/win32/vbsp_manifest.rc
+mp/src/utils/propper/Debug/win32/vbsp.pdb
+mp/src/utils/propper/Debug/win32/vbsp.exe.embed.manifest.res
+mp/src/utils/propper/Debug/win32/vbsp.lib
+*.pdb
